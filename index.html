@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+	<meta charset="UTF-8">
+	<title>Painel de Frota</title>
+	<style>
+		body{
+			background-color:#A8C1FF;
+			color: #ffffff;
+			font-family: Arial, sans-serif;
+			padding: 200px;
+		}
+		h1{
+			text-align: center;
+			color:#759CFF;
+		}
+		.container{
+			display: flex;
+			gap: 100px;
+		}
+		.coluna{
+			flex: 1;
+			background-color: #242C33;
+			padding: 5px;
+			border-radius: 10px;	
+		}
+		.cartao{
+			background-color: #3f3f4e;
+			padding: 1px;
+			border-radius: 5px;
+			margin-bottom: 10px;
+			border-left: 10px solid gray;
+		}
+		.disp{ border-left-color: #4ade80; }
+		.rota{ border-left-color: #f87171; }
+
+		button{
+			padding: 8px;
+			border: none;
+			border-radius: 5px;
+			cursor: pointer;
+			font-weight: bold;
+		}
+		.btn-enviar{background-color: #f87171; color:white;}
+		.btn-chegou{background-color: #4ade80; color:#1e1e24;}
+	</style>
+</head>
+<body>
+	<h1>🚦 CONTROLE DE MOTORISTAS 🚦</h1>
+	<main class="container">
+		<section class="coluna">
+            		<h2 class="titulo-coluna" style="color: #4ade80;">🟢 Disponíveis (Fila)</h2>
+            		<div id="lista-fila"></div>
+        	</section>
+
+        	<section class="coluna">
+            		<h2 class="titulo-coluna" style="color: #f87171;">🔴 Em Rota</h2>
+            		<div id="lista-rota"></div>
+        	</section>
+	</main>
+	<script>
+	let dadosSalvos = localStorage.getItem("frota_motoristasv1");
+        let motoristas = [];
+	
+	if(dadosSalvos){
+		motoristas = JSON.parse(dadosSalvos);
+	} else{
+	motoristas = [
+            { id: 1, nome: "Eurico (F4000)", status: "rota", timestamp: null },
+            { id: 2, nome: "Gerardo (HR)", status: "rota", timestamp: null },
+            { id: 3, nome: "Flavio (HR)", status: "rota", timestamp: null },
+	    { id: 4, nome: "Emerson (HD)", status: "rota", timestamp: null },
+	    { id: 5, nome: "Alessandro (CARGO)", status: "rota", timestamp: null },
+	    { id: 6, nome: "Edipo (MOTO)", status: "rota", timestamp: null },
+	    { id: 7, nome: "Agnaldo (HR)", status: "rota", timestamp: null }	
+		
+        ];
+	}
+        
+        function atualizarTela() {
+            let divFila = document.getElementById("lista-fila");
+            let divRota = document.getElementById("lista-rota");
+            
+            divFila.innerHTML = "";
+            divRota.innerHTML = "";
+	    let disponiveis = motoristas.filter(m => m.status === "disponivel");
+            disponiveis.sort((a, b) => a.timestamp - b.timestamp);
+            disponiveis.forEach(function(motorista, index) {
+                
+                    	let horaFormatada = new Date(motorista.timestamp).toLocaleTimeString("pt-BR");
+			
+			divFila.innerHTML += `
+                        <div class="cartao disp">
+                            <h3>${index + 1}° - ${motorista.nome}</h3>
+                            <p>Chegou às: <strong>${horaFormatada}</strong></p>
+                            <button class="btn-enviar" onclick ="mudarStatus(${motorista.id}, 'rota')">Enviar para Rota</button>
+                        </div>
+                    `;
+		});
+	     let emRota = motoristas.filter(m => m.status == "rota");
+	     emRota.forEach(function(motorista){
+                    divRota.innerHTML += `
+                        <div class="cartao rota">
+                            <h3>${motorista.nome}</h3>
+                            <p>Status: <strong>Fora da Loja</strong></p>
+                            <button class="btn-chegou" onclick="mudarStatus(${motorista.id}, 'disponivel')">✔ Disponivel</button>
+                        </div>
+                    `;
+                
+            });
+        }
+	function mudarStatus(idDoMotorista, novoStatus){
+		let motorista = motoristas.find(m => m.id === idDoMotorista);
+	
+		motorista.status = novoStatus;
+
+		if(novoStatus === "disponivel"){
+			motorista.timestamp = Date.now();
+		}else{
+			motorista.timestamp = null;
+		}
+		localStorage.setItem("frota_motoristasv1", JSON.stringify(motoristas));
+		atualizarTela();
+     	}
+
+        atualizarTela();
+    </script>
+</body>
+</html>
