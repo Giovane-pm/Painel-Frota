@@ -2,224 +2,383 @@
 <html lang="pt-PT">
 <head>
 	<meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Painel de Frota</title>
-	<style>
-		body {
-			background-color: #1e1e24;
-			color: #ffffff;
-			font-family: Arial, sans-serif;
-			padding: 20px;
-            max-width: 1200px;
-            margin: 0 auto;
-		}
-		h1 {
-			text-align: center;
-			color: #fca311;
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+	
+    <style>
+		/* VARIÁVEIS DE COR */
+        :root {
+            --bg-principal: #0f172a; 
+            --bg-painel: #1e293b; 
+            --bg-cartao: #334155; 
+            --texto-claro: #f8fafc;
+            --texto-secundario: #cbd5e1;
+            
+            --cor-frota: #4ade80; 
+            --cor-terceiro: #fbbf24; 
+            --cor-rota: #f87171; 
+            --cor-indisp: #94a3b8; 
+            
+            --azul-botao: #3b82f6;
+            --azul-hover: #2563eb;
+        }
+
+        /* 1. TELA FIXA E SEM SCROLL GERAL */
+        body {
+			background-color: var(--bg-principal);
+			color: var(--texto-claro);
+			font-family: 'Inter', sans-serif;
+			padding: 10px 15px;
+            margin: 0;
+            height: 100vh; /* Trava na altura exata do monitor */
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; /* Proíbe o scroll na página inteira */
+            box-sizing: border-box;
 		}
 
-        /* NOVO: Painel de Gestão no topo */
+		h1 {
+			text-align: center;
+			background: linear-gradient(to right, #fca311, #fbbf24);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 1.6rem; 
+            margin: 0 0 10px 0;
+		}
+
+        /* PAINEL DE GESTÃO */
         .painel-gestao {
             display: flex;
             gap: 10px;
-            margin-bottom: 20px;
-            background-color: #2b2b36;
-            padding: 15px;
-            border-radius: 10px;
+            margin-bottom: 12px;
+            background-color: var(--bg-painel);
+            padding: 10px 15px; 
+            border-radius: 8px;
             align-items: center;
+            /* Evita que o painel seja esmagado */
+            flex-shrink: 0; 
         }
-        .painel-gestao input {
-            flex: 1;
-            padding: 10px;
+        .painel-gestao input, .painel-gestao select {
+            padding: 6px 10px;
             border-radius: 5px;
-            border: none;
-            font-size: 16px;
+            border: 1px solid #475569;
+            background-color: var(--bg-cartao);
+            color: white;
+            font-size: 12px; 
+            font-family: 'Inter', sans-serif;
+            outline: none;
+        }
+        .painel-gestao input { flex: 2; }
+        .painel-gestao select { flex: 1; }
+
+        /* 2. GRID E COLUNAS (A CORREÇÃO DO SCROLL ESTÁ AQUI) */
+		.container { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr 1fr; 
+            gap: 12px; 
+            flex: 1; /* Preenche a altura restante do body */
+            min-height: 0; /* REGRA MÁGICA 1: Permite que o container obedeça ao limite da tela */
+        }
+		
+        .coluna { 
+            background-color: var(--bg-painel); 
+            padding: 10px; 
+            border-radius: 8px; 
+            display: flex;
+            flex-direction: column;
+            min-height: 0; /* REGRA MÁGICA 2: Impede a coluna de vazar para baixo */
         }
 
-		.container { display: flex; gap: 20px; }
-		.coluna { flex: 1; background-color: #2b2b36; padding: 20px; border-radius: 10px; }
-		.cartao { background-color: #3f3f4e; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 5px solid gray; }
-		
-        .disp { border-left-color: #4ade80; }
-		.rota { border-left-color: #f87171; }
+        .titulo-coluna {
+            margin: 0 0 10px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--bg-cartao);
+            font-size: 0.95rem;
+            flex-shrink: 0; /* Impede o título de encolher */
+        }
 
+        /* ÁREA DE SCROLL INDIVIDUAL DAS COLUNAS */
+        .conteudo-coluna {
+            flex: 1;
+            overflow-y: auto; /* Cria o scroll quando tiver muitos cartões */
+            min-height: 0; /* REGRA MÁGICA 3 */
+            padding-right: 4px;
+        }
+		
+        /* 3. CARTÕES COMPACTOS */
+        .cartao { 
+            background-color: var(--bg-cartao); 
+            padding: 8px 10px; 
+            border-radius: 6px; 
+            margin-bottom: 8px; 
+            border-left: 4px solid gray; 
+            position: relative;
+        }
+        .cartao:hover { background-color: #3f516b; }
+		
+        .disp-frota { border-left-color: var(--cor-frota); }
+        .disp-terceiro { border-left-color: var(--cor-terceiro); }
+		.rota { border-left-color: var(--cor-rota); }
+        .indisp { border-left-color: var(--cor-indisp); opacity: 0.8; } 
+
+        .cartao h3 { margin: 0 0 2px 0; padding-right: 55px; font-size: 0.85rem; }
+        .cartao p { margin: 0 0 6px 0; color: var(--texto-secundario); font-size: 0.7rem; }
+
+        /* ETIQUETAS */
+        .tag-tipo {
+            font-size: 0.5rem;
+            padding: 2px 6px;
+            border-radius: 10px;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-weight: 700;
+        }
+        .tag-frota { background-color: rgba(74, 222, 128, 0.15); color: var(--cor-frota); border: 1px solid var(--cor-frota); }
+        .tag-terceiro { background-color: rgba(251, 191, 36, 0.15); color: var(--cor-terceiro); border: 1px solid var(--cor-terceiro); }
+
+        /* 4. WIDGET DE INDISPONÍVEIS (Com Scroll Interno também) */
+        .painel-indisp {
+            position: fixed;
+            bottom: 15px;
+            right: 15px;
+            width: 260px; 
+            max-height: 40vh; /* Altura máxima de 40% da tela */
+            background-color: var(--bg-painel);
+            border: 1px solid #475569;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            z-index: 1000;
+        }
+        .painel-indisp .titulo-coluna {
+            padding: 10px; margin: 0; font-size: 0.85rem; border-bottom: 1px solid var(--bg-cartao);
+        }
+        .painel-indisp .conteudo-coluna {
+            padding: 8px;
+            overflow-y: auto; /* Scroll para o painel flutuante */
+        }
+        .painel-indisp .cartao { padding: 6px 8px; margin-bottom: 6px; }
+        .painel-indisp .cartao h3 { font-size: 0.75rem; }
+
+        /* BOTÕES */
 		button {
-			padding: 10px;
-			border: none;
-			border-radius: 5px;
-			cursor: pointer;
-			font-weight: bold;
-			width: 100%;
-            transition: 0.2s;
+			padding: 5px 8px; border: none; border-radius: 4px; cursor: pointer;
+			font-weight: 600; font-size: 0.75rem; font-family: 'Inter', sans-serif;
+			width: 100%; transition: 0.1s; margin-top: 4px;
 		}
-		.btn-enviar { background-color: #f87171; color: white; }
-		.btn-chegou { background-color: #4ade80; color: #1e1e24; }
-        
-        /* NOVOS BOTÕES */
-        .btn-adicionar { background-color: #3b82f6; color: white; width: auto; padding: 10px 20px; }
-        .btn-finalizar { background-color: #eab308; color: #1e1e24; width: auto; padding: 10px 20px; }
+        button:active { transform: scale(0.97); } 
+
+		.btn-enviar { background-color: rgba(248, 113, 113, 0.1); color: #fca5a5; border: 1px solid var(--cor-rota); }
+        .btn-enviar:hover { background-color: var(--cor-rota); color: white; }
+		.btn-chegou { background-color: rgba(74, 222, 128, 0.1); color: #86efac; border: 1px solid var(--cor-frota); }
+        .btn-chegou:hover { background-color: var(--cor-frota); color: #0f172a; }
+        .btn-pausar { background-color: rgba(148, 163, 184, 0.1); color: #cbd5e1; border: 1px solid #64748b; } 
+        .btn-pausar:hover { background-color: #64748b; color: white; }
+        .btn-adicionar { background-color: var(--azul-botao); color: white; width: auto; padding: 6px 12px; }
+        .btn-finalizar { background-color: var(--cor-terceiro); color: #0f172a; width: auto; padding: 6px 12px; }
         
         .btn-remover { 
-            background-color: transparent; 
-            color: #f87171; 
-            border: 1px solid #f87171; 
-            margin-top: 10px; 
-            font-size: 12px; 
+            background-color: transparent; color: #64748b; font-size: 0.65rem; 
+            margin-top: 4px; padding: 2px; text-decoration: underline;
         }
-        .btn-remover:hover { background-color: #f87171; color: white; }
+        .btn-remover:hover { color: var(--cor-rota); background: transparent; }
+
+        /* Estilo da Barra de Rolagem */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+
 	</style>
 </head>
 <body>
-	<h1>Controle de Fila - Motoristas</h1>
+	<h1>Gestão de Logística</h1>
 
-    <!-- NOVO: Painel para Adicionar Motoristas e Finalizar o Dia -->
     <div class="painel-gestao">
-        <input type="text" id="novo-motorista" placeholder="Escreva o Nome e Veículo (ex: João - HR)">
-        <button class="btn-adicionar" onclick="adicionarMotorista()">➕ Adicionar Motorista</button>
-        <button class="btn-finalizar" onclick="finalizarExpediente()">🌙 Finalizar Expediente</button>
+        <input type="text" id="novo-motorista" placeholder="Nome e Veículo (ex: João - HR)">
+        <select id="tipo-motorista">
+            <option value="frota">🏢 Frota Própria</option>
+            <option value="terceiro">🚚 Freteiro</option>
+        </select>
+        <button class="btn-adicionar" onclick="adicionarMotorista()">➕ Cadastrar</button>
+        <button class="btn-finalizar" onclick="finalizarExpediente()">🌙 Finalizar Dia</button>
     </div>
 	
 	<main class="container">
 		<section class="coluna">
-			<h2 class="titulo-coluna" style="color: #4ade80;">🟢 Disponíveis (Fila)</h2>
-			<div id="lista-fila"></div>
+			<h2 class="titulo-coluna" style="color: var(--cor-frota);">🟢 Fila (Frota)</h2>
+			<div class="conteudo-coluna" id="lista-fila-frota"></div>
+		</section>
+
+        <section class="coluna">
+			<h2 class="titulo-coluna" style="color: var(--cor-terceiro);">🟡 Fila (Freteiros)</h2>
+			<div class="conteudo-coluna" id="lista-fila-terceiros"></div>
 		</section>
 
 		<section class="coluna">
-			<h2 class="titulo-coluna" style="color: #f87171;">🔴 Em Rota</h2>
-			<div id="lista-rota"></div>
+			<h2 class="titulo-coluna" style="color: var(--cor-rota);">🔴 Em Rota</h2>
+			<div class="conteudo-coluna" id="lista-rota"></div>
 		</section>
 	</main>
 
+    <!-- WIDGET FLUTUANTE DE INDISPONÍVEIS -->
+    <aside class="painel-indisp">
+        <h2 class="titulo-coluna" style="color: var(--cor-indisp); margin:0;">⚪ Indisponível (Oficina)</h2>
+        <div class="conteudo-coluna" id="lista-indisponiveis"></div>
+    </aside>
+
 	<script>
-		// 1. INICIALIZAÇÃO E MEMÓRIA
-		let dadosSalvos = localStorage.getItem("frota_motoristas_v5");
+		let dadosSalvos = localStorage.getItem("frota_motoristas_v7");
 		let motoristas = [];
 
 		if (dadosSalvos) {
 			motoristas = JSON.parse(dadosSalvos);
 		} else {
 			motoristas = [
-				{ id: 1, nome: "Eurico (F4000)", status: "rota", timestamp: null },
-				{ id: 2, nome: "Gerardo (HR)", status: "rota", timestamp: null },
-				{ id: 3, nome: "Flavio (HR)", status: "rota", timestamp: null },
-				{ id: 4, nome: "Emerson (HD)", status: "rota", timestamp: null },
-				{ id: 5, nome: "Alessandro (CARGO)", status: "rota", timestamp: null },
-				{ id: 6, nome: "Edipo (MOTO)", status: "rota", timestamp: null }
+				{ id: 1, nome: "Eurico (F4000)", status: "disponivel", timestamp: null, tipo: "frota" },
+				{ id: 2, nome: "Gerardo (HR)", status: "disponivel", timestamp: null, tipo: "frota" },
+				{ id: 3, nome: "Flavio (HR)", status: "disponivel", timestamp: null, tipo: "frota" },
+				{ id: 4, nome: "Emerson (HD)", status: "disponivel", timestamp: null, tipo: "frota" },
+				{ id: 5, nome: "Alessandro (CARGO)", status: "disponivel", timestamp: null, tipo: "frota" },
+				{ id: 6, nome: "Edipo (MOTO)", status: "disponivel", timestamp: null, tipo: "frota" },
+        			{ id: 7, nome: "Agnaldo (HR)", status: "disponivel", timestamp: null, tipo: "frota" },
+        			{ id: 8, nome: "Anailson (D10)", status: "disponivel", timestamp: null, tipo: "terceiro" },
+        			{ id: 9, nome: "Olimpio (D20)", status: "disponivel", timestamp: null, tipo: "terceiro" },
+        			{ id: 10, nome: "Edson (F4000)", status: "disponivel", timestamp: null, tipo: "terceiro" }
 			];
 		}
 
-        // Função auxiliar para guardar na memória sempre que houver alterações
         function salvarDados() {
-            localStorage.setItem("frota_motoristas_v5", JSON.stringify(motoristas));
+            localStorage.setItem("frota_motoristas_v7", JSON.stringify(motoristas));
         }
 		
-		// 2. ATUALIZAR O ECRÃ
 		function atualizarTela() {
-			let divFila = document.getElementById("lista-fila");
+			let divFilaFrota = document.getElementById("lista-fila-frota");
+            let divFilaTerceiros = document.getElementById("lista-fila-terceiros");
 			let divRota = document.getElementById("lista-rota");
+            let divIndisp = document.getElementById("lista-indisponiveis");
 			
-			divFila.innerHTML = "";
+			divFilaFrota.innerHTML = "";
+            divFilaTerceiros.innerHTML = "";
 			divRota.innerHTML = "";
+            divIndisp.innerHTML = "";
 
-            // FILA
-			let disponiveis = motoristas.filter(m => m.status === "disponivel");
-			disponiveis.sort((a, b) => a.timestamp - b.timestamp);
-            
-			disponiveis.forEach(function(motorista, index) {
-				let horaFormatada = new Date(motorista.timestamp).toLocaleTimeString("pt-PT");
-				divFila.innerHTML += `
-					<div class="cartao disp">
-						<h3>${index + 1}º - ${motorista.nome}</h3>
-						<p>Chegou às: <strong>${horaFormatada}</strong></p>
-						<button class="btn-enviar" onclick="mudarStatus(${motorista.id}, 'rota')">Enviar para Rota</button>
-                        <button class="btn-remover" onclick="removerMotorista(${motorista.id})">Remover do Sistema</button>
-					</div>
-				`;
+			let dispFrota = motoristas.filter(m => m.status === "disponivel" && m.tipo === "frota");
+			dispFrota.sort((a, b) => a.timestamp - b.timestamp);
+			dispFrota.forEach((motorista, index) => {
+				let hora = new Date(motorista.timestamp).toLocaleTimeString("pt-PT", {hour: '2-digit', minute:'2-digit'});
+				divFilaFrota.innerHTML += gerarCartaoHTML(motorista, index + 1, hora, "disp-frota");
 			});
 
-            // EM ROTA
+            let dispTerceiros = motoristas.filter(m => m.status === "disponivel" && m.tipo === "terceiro");
+			dispTerceiros.sort((a, b) => a.timestamp - b.timestamp);
+			dispTerceiros.forEach((motorista, index) => {
+				let hora = new Date(motorista.timestamp).toLocaleTimeString("pt-PT", {hour: '2-digit', minute:'2-digit'});
+				divFilaTerceiros.innerHTML += gerarCartaoHTML(motorista, index + 1, hora, "disp-terceiro");
+			});
+
 			let emRota = motoristas.filter(m => m.status == "rota");
-			emRota.forEach(function(motorista){
-				divRota.innerHTML += `
-					<div class="cartao rota">
-						<h3>${motorista.nome}</h3>
-						<p>Status: <strong>Fora da Loja</strong></p>
-						<button class="btn-chegou" onclick="mudarStatus(${motorista.id}, 'disponivel')">Chegou na Loja</button>
-                        <button class="btn-remover" onclick="removerMotorista(${motorista.id})">Remover do Sistema</button>
-					</div>
-				`;
+			emRota.forEach(motorista => {
+				divRota.innerHTML += gerarCartaoHTML(motorista, null, null, "rota");
+			});
+
+            let indisponiveis = motoristas.filter(m => m.status == "indisponivel");
+			indisponiveis.forEach(motorista => {
+				divIndisp.innerHTML += gerarCartaoHTML(motorista, null, null, "indisp");
 			});
 		}
 
-		// 3. MUDAR STATUS
+        function gerarCartaoHTML(motorista, posicaoFila, hora, corBorda) {
+            let titulo = posicaoFila ? `${posicaoFila}º - ${motorista.nome}` : motorista.nome;
+            let infoHora = "";
+            let botoes = "";
+
+            if (motorista.status === "disponivel") {
+                infoHora = `<p>Chegou: <strong>${hora}</strong></p>`;
+                botoes = `
+                    <div style="display: flex; gap: 5px;">
+                        <button class="btn-enviar" onclick="mudarStatus(${motorista.id}, 'rota')">🚚 Rota</button>
+                        <button class="btn-pausar" onclick="mudarStatus(${motorista.id}, 'indisponivel')" style="width: auto;" title="Pausar/Oficina">⚠️</button>
+                    </div>
+                `;
+            } else if (motorista.status === "rota") {
+                infoHora = `<p>Status: Fora da Loja</p>`;
+                botoes = `
+                    <div style="display: flex; gap: 5px;">
+                        <button class="btn-chegou" onclick="mudarStatus(${motorista.id}, 'disponivel')">✅ Loja</button>
+                        <button class="btn-pausar" onclick="mudarStatus(${motorista.id}, 'indisponivel')" style="width: auto;" title="Pausar/Oficina">⚠️</button>
+                    </div>
+                `;
+            } else if (motorista.status === "indisponivel") {
+                infoHora = ``; 
+                botoes = `
+                    <button class="btn-enviar" onclick="mudarStatus(${motorista.id}, 'rota')">🔄 Voltar p/ Rota</button>
+                `;
+            }
+            
+            let tagVisual = motorista.tipo === "frota" 
+                ? `<span class="tag-tipo tag-frota">FROTA</span>`
+                : `<span class="tag-tipo tag-terceiro">TERCEIRO</span>`;
+
+            return `
+                <div class="cartao ${corBorda}">
+                    ${tagVisual}
+                    <h3>${titulo}</h3>
+                    ${infoHora}
+                    ${botoes}
+                    <button class="btn-remover" onclick="removerMotorista(${motorista.id})">Remover</button>
+                </div>
+            `;
+        }
+
 		function mudarStatus(idDoMotorista, novoStatus){
 			let motorista = motoristas.find(m => m.id === idDoMotorista);
 			motorista.status = novoStatus;
-
-			if(novoStatus === "disponivel"){
-				motorista.timestamp = Date.now();
-			} else {
-				motorista.timestamp = null;
-			}
-            
+			if(novoStatus === "disponivel"){ 
+                motorista.timestamp = Date.now(); 
+            } else { 
+                motorista.timestamp = null; 
+            }
             salvarDados();
 			atualizarTela();
 		}
 
-        // 4. ADICIONAR NOVO MOTORISTA
         function adicionarMotorista() {
             let input = document.getElementById("novo-motorista");
-            let nome = input.value.trim(); // Remove espaços em branco desnecessários
+            let tipo = document.getElementById("tipo-motorista").value;
+            let nome = input.value.trim();
 
-            if (nome === "") {
-                alert("Por favor, escreva o nome do motorista antes de adicionar.");
-                return; // Para a função aqui se estiver vazio
-            }
+            if (nome === "") { alert("Por favor, escreva o nome do motorista."); return; }
 
-            // Descobre qual é o ID mais alto atual para criar o próximo
-            let novoId = 1;
-            if (motoristas.length > 0) {
-                novoId = Math.max(...motoristas.map(m => m.id)) + 1;
-            }
+            let novoId = motoristas.length > 0 ? Math.max(...motoristas.map(m => m.id)) + 1 : 1;
+            motoristas.push({ id: novoId, nome: nome, status: "rota", timestamp: null, tipo: tipo });
 
-            // Adiciona à lista
-            motoristas.push({
-                id: novoId,
-                nome: nome,
-                status: "rota",
-                timestamp: null
-            });
-
-            input.value = ""; // Limpa a caixa de texto
+            input.value = ""; 
             salvarDados();
             atualizarTela();
         }
 
-        // 5. REMOVER MOTORISTA
         function removerMotorista(idDoMotorista) {
-            // Confirmação de segurança
-            if(confirm("Tem a certeza que deseja remover este motorista do sistema?")) {
-                // Filtra a lista, mantendo todos EXCETO o que tem este ID
+            if(confirm("Remover este motorista do sistema?")) {
                 motoristas = motoristas.filter(m => m.id !== idDoMotorista);
                 salvarDados();
                 atualizarTela();
             }
         }
 
-        // 6. FINALIZAR EXPEDIENTE
         function finalizarExpediente() {
-            // Confirmação de segurança
-            if(confirm("Deseja finalizar o expediente? Todos os motoristas voltarão para o status 'Em Rota'.")) {
+            if(confirm("Finalizar o expediente? Todos voltarão para a rota.")) {
                 motoristas.forEach(m => {
-                    m.status = "rota";
-                    m.timestamp = null;
+                    if(m.status !== "indisponivel") { m.status = "rota"; m.timestamp = null; }
                 });
                 salvarDados();
                 atualizarTela();
             }
         }
 
-		// Inicia a aplicação
 		atualizarTela();
 	</script>
 </body>
