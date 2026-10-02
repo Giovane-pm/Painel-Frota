@@ -380,7 +380,7 @@
             if(confirm("Finalizar o expediente? Todos os disponíveis voltarão para a rota.")) {
                 const { error } = await supabaseClient
                     .from('motoristas')
-                    .update({ status: 'rota', timestamp: null })
+                    .update({ status: 'disponivel', timestamp: null })
                     .neq('status', 'indisponivel');
 
                 if (!error) carregarDados();
